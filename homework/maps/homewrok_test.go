@@ -9,32 +9,154 @@ import (
 
 // go test -v homework_test.go
 
+type Node struct {
+	key   int
+	value int
+	left  *Node
+	right *Node
+}
+
 type OrderedMap struct {
-	// need to implement
+	root *Node
+	size int
 }
 
 func NewOrderedMap() OrderedMap {
-	return OrderedMap{} // need to implement
+	return OrderedMap{
+		root: nil,
+		size: 0,
+	}
 }
 
 func (m *OrderedMap) Insert(key, value int) {
-	// need to implement
-}
+	if m.root == nil {
+		m.root = &Node{key: key, value: value}
+		m.size++
+		return
+	}
 
-func (m *OrderedMap) Erase(key int) {
-	// need to implement
+	current := m.root
+	for {
+		if current.key == key {
+			current.value = value
+			return
+		}
+		if current.key > key {
+			if current.left == nil {
+				current.left = &Node{key: key, value: value}
+				m.size++
+				return
+			}
+			current = current.left
+		} else {
+			if current.right == nil {
+				current.right = &Node{key: key, value: value}
+				m.size++
+				return
+			}
+			current = current.right
+		}
+	}
 }
 
 func (m *OrderedMap) Contains(key int) bool {
-	return false // need to implement
+	current := m.root
+	for current != nil {
+		if current.key == key {
+			return true
+		}
+		if current.key > key {
+			current = current.left
+		} else {
+			current = current.right
+		}
+	}
+	return false
 }
 
 func (m *OrderedMap) Size() int {
-	return 0 // need to implement
+	return m.size
 }
 
 func (m *OrderedMap) ForEach(action func(int, int)) {
-	// need to implement
+	m.inOrderTraversal(m.root, action)
+}
+
+func (m *OrderedMap) inOrderTraversal(node *Node, action func(int, int)) {
+	if node == nil {
+		return
+	}
+	m.inOrderTraversal(node.left, action)
+	action(node.key, node.value)
+	m.inOrderTraversal(node.right, action)
+}
+
+func (m *OrderedMap) Erase(key int) {
+	parentSide := false
+	parent := m.root
+	current := m.root
+
+	for {
+		if current.key == key {
+
+			m.size--
+
+			if current.left == nil {
+				if parentSide {
+					parent.right = current.right
+				} else {
+					parent.left = current.right
+				}
+
+				return
+			}
+			if current.right == nil {
+				if parentSide {
+					parent.right = current.left
+				} else {
+					parent.left = current.left
+				}
+
+				return
+			}
+
+			// Находим минимальный элемент в правом поддереве
+			minNode := current.right
+			minNodeParent := current
+			for minNode.left != nil {
+				minNodeParent = minNode
+				minNode = minNode.left
+			}
+
+			// Копируем данные минимального элемента
+			current.key = minNode.key
+			current.value = minNode.value
+
+			// Удаляем минимальный элемент
+			if minNodeParent == current {
+				minNodeParent.right = nil
+			} else {
+				minNodeParent.left = nil
+			}
+
+			return
+		}
+		if key < current.key {
+			if current.left == nil {
+				return
+			}
+			parentSide = false
+			parent = current
+			current = current.left
+		} else {
+			if current.right == nil {
+				return
+			}
+			parentSide = true
+			parent = current
+			current = current.right
+		}
+	}
 }
 
 func TestCircularQueue(t *testing.T) {
