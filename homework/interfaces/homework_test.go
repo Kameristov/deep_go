@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,21 +19,31 @@ type MessageService struct {
 }
 
 type Container struct {
-	// need to implement
+	constructors map[string]func() interface{}
 }
 
 func NewContainer() *Container {
-	// need to implement
-	return &Container{}
+	return &Container{
+		constructors: make(map[string]func() interface{}),
+	}
 }
 
 func (c *Container) RegisterType(name string, constructor interface{}) {
-	// need to implement
+	fn, ok := constructor.(func() interface{})
+	if !ok {
+		panic("constructor is not a function, name: " + name)
+	}
+
+	c.constructors[name] = fn
 }
 
 func (c *Container) Resolve(name string) (interface{}, error) {
-	// need to implement
-	return nil, nil
+	constructor, exists := c.constructors[name]
+	if !exists {
+		return nil, errors.New("constructor not registered, name: " + name)
+	}
+	
+	return constructor(), nil
 }
 
 func TestDIContainer(t *testing.T) {
