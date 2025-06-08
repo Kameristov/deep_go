@@ -11,7 +11,34 @@ import (
 // go test -v homework_test.go
 
 func Defragment(memory []byte, pointers []unsafe.Pointer) {
-	// need to implement
+	left := 0
+	right := left + 1
+	pointer := 0
+
+	for right < len(memory) {
+		if memory[left] != 0 {
+			pointers[pointer] = unsafe.Pointer(&memory[left])
+
+			pointer++
+			left++
+			right++
+
+			continue
+		}
+
+		if memory[right] == 0 {
+			right++
+		}
+
+		if memory[right] != 0 && memory[left] == 0 {
+			memory[left], memory[right] = memory[right], memory[left]
+			pointers[pointer] = unsafe.Pointer(&memory[left])
+
+			pointer++
+			left++
+			right++
+		}
+	}
 }
 
 func TestDefragmentation(t *testing.T) {
